@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">CameraTest</string>
+    <string name="start">Start</string>
+
+    <string name="title_activity_fullscreen_camera">FullscreenCameraActivity</string>
+    <string name="takeVideo_button">TakeVideo</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="camera_permission_explain">These permissions are needed work with camera</string>
+    <string name="grant">GRANT</string>
+    <string name="camera_or_storage_denied">Permissions denied.</string>
+    <string name="camera_or_storage_not_granted">Permissions isn\\\'t granted</string>
+    <string name="settings">SETTINGS</string>
+    <string name="camera_storage_grant">Open Permissions and grant permissions</string>
+    <string name="timer_initial_time">0:30</string>
+    <string name="str_share_this_video">Choose app to share video</string>
+    <string name="end_video_button">END</string>
+    <string name="start_inside_view">Start inside view</string>
+</resources>
