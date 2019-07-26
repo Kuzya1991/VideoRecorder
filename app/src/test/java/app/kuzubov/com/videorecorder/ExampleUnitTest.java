@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest;
+package app.kuzubov.com.videorecorder;
 
 import org.junit.Test;
 

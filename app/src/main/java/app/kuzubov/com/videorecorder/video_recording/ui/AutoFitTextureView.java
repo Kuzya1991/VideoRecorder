@@ -1,9 +1,13 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.ui;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.TextureView;
 import android.view.View;
+
+/**
+ * A {@link TextureView} that can be adjusted to a specified aspect ratio.
+ */
 
 public class AutoFitTextureView extends TextureView {
 
@@ -30,6 +34,7 @@ public class AutoFitTextureView extends TextureView {
      * @param width  Relative horizontal size
      * @param height Relative vertical size
      */
+    @SuppressWarnings("unused") //Suppose to be used in future but not using currently
     public void setAspectRatio(int width, int height) {
         if (width < 0 || height < 0) {
             throw new IllegalArgumentException("Size cannot be negative.");

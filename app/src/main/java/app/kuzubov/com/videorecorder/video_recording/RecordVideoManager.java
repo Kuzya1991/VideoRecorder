@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -48,23 +48,23 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import app.kuzubov.com.cameratest.R;
+import app.kuzubov.com.videorecorder.R;
+import app.kuzubov.com.videorecorder.video_recording.helpers.FileHelper;
+import app.kuzubov.com.videorecorder.video_recording.helpers.PermissionUtils;
+import app.kuzubov.com.videorecorder.video_recording.ui.AutoFitTextureView;
+import app.kuzubov.com.videorecorder.video_recording.ui.FullscreenCameraActivity;
 
-import static app.kuzubov.com.cameratest.R.layout.frame_camera_recording;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.CAMERA_BACK;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.DEFAULT_VIDEO_DURATION_LIMIT;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.DEFAULT_VIDEO_FRAME_RATE;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.REQUEST_CAMERA_PERMISSION;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.SHARE_RESULT_CODE;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.VIDEO_BIT_RATE;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.VIDEO_HEIGHT;
-import static app.kuzubov.com.cameratest.video_recording.RecordVideoManager.Contract.VIDEO_WIDTH;
+import static app.kuzubov.com.videorecorder.R.layout.frame_camera_recording;
+
+/**
+ * The main class that provide api to record video with special time period and frame rate.
+ */
 
 public class RecordVideoManager {
 
     private static final String TAG = RecordVideoManager.class.getSimpleName();
 
-    private FrameLayout mVideoContainer;
+    private final FrameLayout mVideoContainer;
 
     private CameraDevice mCameraDevice;
     private MediaRecorder mMediaRecorder;
@@ -74,35 +74,44 @@ public class RecordVideoManager {
     private Button mRecordButton;
     private AutoFitTextureView mCameraPreview;
 
-    protected CameraCaptureSession mCameraCaptureSessions;
-    protected CaptureRequest.Builder mCaptureRequestBuilder;
+    private CameraCaptureSession mCameraCaptureSessions;
+    private CaptureRequest.Builder mCaptureRequestBuilder;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
 
     private Activity mActivity;
     private boolean mIsVideoRecording;
     private File mCurrentVideoFile;
-    private String mNextVideoAbsolutePath;
-    private int mDurationLimit = DEFAULT_VIDEO_DURATION_LIMIT;
-    private int mFrameRate = DEFAULT_VIDEO_FRAME_RATE;
+    private int mDurationLimit;
+    private final int mFrameRate;
     private ViewGroup mParentView;
-    private IVideoRecordingListener mListener;
+    private final IVideoRecordingListener mListener;
+    private final FileHelper mFileHelper;
 
 
-    public RecordVideoManager (Activity activity, int durationLimit, int frameRate, IVideoRecordingListener listener){
+    public RecordVideoManager(Activity activity, int durationLimit, int frameRate, IVideoRecordingListener listener, FileHelper helper) {
         this.mDurationLimit = durationLimit;
         this.mFrameRate = frameRate;
         this.mActivity = activity;
         this.mListener = listener;
+        this.mFileHelper = helper;
 
-        mVideoContainer = (FrameLayout) LayoutInflater.from(mActivity).inflate(frame_camera_recording, null);
+        mVideoContainer = (FrameLayout) LayoutInflater.from(mActivity).inflate(frame_camera_recording, mParentView);
     }
 
-    public static void start(Context context){
+    /**
+     * Start full screen activity with camera preview
+     */
+    public static void start(Context context) {
         FullscreenCameraActivity.start(context);
     }
 
-    public void start(ViewGroup parentView){
+    /**
+     * Add camera preview to a ViewGroup element
+     *
+     * @param parentView is a ViewGroup ui element
+     */
+    public void start(ViewGroup parentView) {
 
         this.mParentView = parentView;
         mCameraPreview = mVideoContainer.findViewById(R.id.fullscreen_content);
@@ -151,6 +160,7 @@ public class RecordVideoManager {
         try {
             SurfaceTexture texture = mCameraPreview.getSurfaceTexture();
             if (texture == null) return;
+            texture.setDefaultBufferSize(Contract.VIDEO_WIDTH, Contract.VIDEO_HEIGHT);
             Surface surface = new Surface(texture);
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mCaptureRequestBuilder.addTarget(surface);
@@ -175,7 +185,7 @@ public class RecordVideoManager {
 
     private void updatePreview() {
         if (null == mCameraDevice) {
-            Log.e(TAG, "updatePreview error, return");
+            Log.e(TAG, mActivity.getString(R.string.camera_init_error));
             return;
         }
         mCaptureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
@@ -203,10 +213,10 @@ public class RecordVideoManager {
     private void initCamera() throws CameraAccessException {
         android.hardware.camera2.CameraManager manager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
         assert manager != null;
-        CameraCharacteristics characteristics = manager.getCameraCharacteristics(CAMERA_BACK);
+        CameraCharacteristics characteristics = manager.getCameraCharacteristics(Contract.CAMERA_BACK);
         StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         assert map != null;
-        manager.openCamera(CAMERA_BACK, stateCallback, null);
+        manager.openCamera(Contract.CAMERA_BACK, stateCallback, null);
     }
 
     private Range<Integer> getRange() {
@@ -216,9 +226,10 @@ public class RecordVideoManager {
             CameraManager manager = (CameraManager) mActivity.getSystemService(Context.CAMERA_SERVICE);
             CameraCharacteristics chars;
             assert manager != null;
-            chars = manager.getCameraCharacteristics(CAMERA_BACK);
+            chars = manager.getCameraCharacteristics(Contract.CAMERA_BACK);
             Range<Integer>[] ranges = chars.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
 
+            assert ranges != null;
             for (Range<Integer> range : ranges) {
                 int upper = range.getUpper();
 
@@ -247,12 +258,18 @@ public class RecordVideoManager {
         }
     }
 
+    /**
+     * Start helper thread to avoid ui stuck.
+     */
     private void startBackgroundThread() {
-        mBackgroundThread = new HandlerThread("Camera Background");
+        mBackgroundThread = new HandlerThread(Contract.VIDEO_HANDLER_NAME);
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
+    /**
+     * Stop helper thread.
+     */
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -272,41 +289,40 @@ public class RecordVideoManager {
         stopBackgroundThread();
     }
 
-
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    /**
+     * Obtain user permission's decision
+     */
+    public void onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
         boolean allowed = true;
 
-        switch (requestCode) {
-            case REQUEST_CAMERA_PERMISSION:
-
-                for (int res : grantResults) {
-                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
-                }
-                if (allowed) {
-                    if (hasPermissions()) {
-                        try {
-                            initCamera();
-                        } catch (CameraAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (mActivity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-                            Toast.makeText(mActivity, R.string.camera_or_storage_denied, Toast.LENGTH_SHORT).show();
-                        } else {
-                            showNoCameraPermissionSnackBar();
-                        }
+        if (requestCode == Contract.REQUEST_CAMERA_PERMISSION) {
+            for (int res : grantResults) {
+                allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
+            }
+            if (allowed) {
+                if (hasPermissions()) {
+                    try {
+                        initCamera();
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
                     }
                 }
-
-                break;
-            default:
-                break;
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (mActivity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                        Toast.makeText(mActivity, R.string.camera_or_storage_denied, Toast.LENGTH_SHORT).show();
+                    } else {
+                        showNoCameraPermissionSnackBar();
+                    }
+                }
+            }
         }
     }
 
-    public void showNoCameraPermissionSnackBar() {
+    /**
+     * Show bottom dialog that notify user about not granted permissions
+     */
+    private void showNoCameraPermissionSnackBar() {
         Snackbar.make(mParentView, R.string.camera_or_storage_not_granted, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.settings, new View.OnClickListener() {
                     @Override
@@ -322,10 +338,10 @@ public class RecordVideoManager {
                 .show();
     }
 
-    public void openApplicationSettings() {
+    private void openApplicationSettings() {
         Intent appSettingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:" + mActivity.getPackageName()));
-        mActivity.startActivityForResult(appSettingsIntent, REQUEST_CAMERA_PERMISSION);
+                Uri.parse(mActivity.getString(R.string.app_settings_package, mActivity.getPackageName())));
+        mActivity.startActivityForResult(appSettingsIntent, Contract.REQUEST_CAMERA_PERMISSION);
     }
 
     private final TextureView.SurfaceTextureListener mTextureListener = new TextureView.SurfaceTextureListener() {
@@ -348,6 +364,10 @@ public class RecordVideoManager {
         }
     };
 
+    /**
+     * Start video recording. User will be notified with timer on the top of the screen about remaining time.
+     */
+
     private void startRecordingVideo() {
         if (null == mCameraDevice || !mCameraPreview.isAvailable()) {
             return;
@@ -362,7 +382,7 @@ public class RecordVideoManager {
 
             // Set up Surface for the camera preview
             Surface previewSurface = new Surface(texture);
-            setUpMediaRecorder(previewSurface);
+            setUpMediaRecorder();
             surfaces.add(previewSurface);
             mCaptureRequestBuilder.addTarget(previewSurface);
 
@@ -388,7 +408,7 @@ public class RecordVideoManager {
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Toast.makeText(mActivity, "Failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mActivity, R.string.failed, Toast.LENGTH_SHORT).show();
                 }
             }, mBackgroundHandler);
         } catch (CameraAccessException | IOException e) {
@@ -403,6 +423,9 @@ public class RecordVideoManager {
         mVideoTimer.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Start timer to notify user about remaining time
+     */
     private void startTimer() {
         try {
             timer = new Timer();
@@ -420,15 +443,17 @@ public class RecordVideoManager {
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
                             public void run() {
-                                mVideoTimer.setText(String.format(Locale.getDefault(), "%d:%02d", 0, mDurationLimit));
+                                try {
+                                    mVideoTimer.setText(String.format(Locale.getDefault(), mActivity.getString(R.string.timer_scheme), 0, mDurationLimit));
+                                } catch (Exception ignored) {
+                                }
                             }
                         });
                     }
                 }
             };
-            timer.schedule(timerTask, 0, 1000);
-        } catch (IllegalStateException ex) {
-            Log.e(TAG, "", ex);
+            timer.schedule(timerTask, Contract.TIMER_DELAY, Contract.TIMER_PERIOD);
+        } catch (IllegalStateException ignored) {
         }
     }
 
@@ -440,54 +465,51 @@ public class RecordVideoManager {
         closePreviewSession();
         mIsVideoRecording = true;
 
-        shareVideo(mNextVideoAbsolutePath);
+        shareVideo();
     }
 
-    public void shareVideo(String path) {
+    /**
+     * Share recorded video through the appropriate app you will choose.
+     */
+
+    private void shareVideo() {
 
         Uri videoURI = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-                ? FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".provider", mCurrentVideoFile)
+                ? FileProvider.getUriForFile(mActivity, mActivity.getString(R.string.authority_suffix, mActivity.getPackageName()), mCurrentVideoFile)
                 : Uri.fromFile(mCurrentVideoFile);
 
         Intent chooser = ShareCompat.IntentBuilder.from(mActivity)
                 .setStream(videoURI)
-                .setType("video/mp4")
-                .setChooserTitle("Share video...")
+                .setType(Contract.VIDEO_MIME_TYPE)
+                .setChooserTitle(R.string.share_video_title)
                 .createChooserIntent();
 
-//        String type = "video/mp4";
-//        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-//        shareIntent.setType(type);
-//        shareIntent.putExtra(Intent.EXTRA_STREAM, videoURI);
-//
-//        Intent receiver = new Intent(mActivity, ShareVideoReceiver.class);
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 0, receiver, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//        Intent chooser = Intent.createChooser(shareIntent, "Share video...", pendingIntent.getIntentSender());
-
         if (chooser.resolveActivity(mActivity.getPackageManager()) != null) {
-            mActivity.startActivityForResult(chooser, SHARE_RESULT_CODE);
+            mActivity.startActivityForResult(chooser, Contract.SHARE_RESULT_CODE);
         }
     }
 
-    private void setUpMediaRecorder(Surface previewSurface) throws IOException {
+    /**
+     * Set up media recorder with appropriate params to start video recording
+     */
+    private void setUpMediaRecorder() throws IOException {
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mNextVideoAbsolutePath = prepareVideoFilePath();
+        String mNextVideoAbsolutePath = prepareVideoFilePath();
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
-        mMediaRecorder.setVideoEncodingBitRate(VIDEO_BIT_RATE);
+        mMediaRecorder.setVideoEncodingBitRate(Contract.VIDEO_BIT_RATE);
         mMediaRecorder.setVideoFrameRate(mFrameRate);
-        mMediaRecorder.setVideoSize(VIDEO_WIDTH, VIDEO_HEIGHT);
+        mMediaRecorder.setVideoSize(Contract.VIDEO_WIDTH, Contract.VIDEO_HEIGHT);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mMediaRecorder.setOrientationHint(90);
+        mMediaRecorder.setOrientationHint(Contract.CAMERA_ORIENTATION);
         mMediaRecorder.prepare();
     }
 
     private String prepareVideoFilePath() {
-        mCurrentVideoFile = FileHelper.getInstance().getVideoFile();
+        mCurrentVideoFile = mFileHelper.getVideoFile();
         return mCurrentVideoFile.getPath();
     }
 
@@ -502,15 +524,16 @@ public class RecordVideoManager {
         try {
             mMediaRecorder.stop();
             mMediaRecorder.reset();
+            mMediaRecorder.release();
             mMediaRecorder = null;
-        } catch (Exception ex) {
-            Log.e("", "record error : ", ex);
+        } catch (Exception ignored) {
         }
     }
 
+    /**
+     * Clear all resources to about memory leaks
+     */
     public void onDestroy() {
-        if(mActivity != null)
-            mActivity = null;
         if (timer != null) {
             timer.purge();
             timer.cancel();
@@ -518,8 +541,8 @@ public class RecordVideoManager {
         if (timerTask != null) {
             timerTask.cancel();
         }
-        if(mCurrentVideoFile != null)
-            mCurrentVideoFile.deleteOnExit();
+        if (mFileHelper != null)
+            mFileHelper.clearCache();
         if (mMediaRecorder != null && mIsVideoRecording) {
             try {
                 mMediaRecorder.stop();
@@ -529,10 +552,13 @@ public class RecordVideoManager {
             }
         }
         closeCamera();
+
+        if (mActivity != null)
+            mActivity = null;
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == SHARE_RESULT_CODE)
+    public void onActivityResult(int requestCode) {
+        if (requestCode == Contract.SHARE_RESULT_CODE)
             mListener.closeCameraView();
 
     }
@@ -551,7 +577,10 @@ public class RecordVideoManager {
         return true;
     }
 
-    public void requestPermissionWithRationale() {
+    /**
+     * Show permission grant bottom dialog if user reject permissions
+     */
+    private void requestPermissionWithRationale() {
         if (checkVideoPermissionsRationale()) {
             Snackbar.make(mParentView, R.string.camera_permission_explain, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.grant, new View.OnClickListener() {
@@ -577,27 +606,34 @@ public class RecordVideoManager {
 
     private void requestPerms() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mActivity.requestPermissions(PermissionUtils.VIDEO_PERMISSIONS, REQUEST_CAMERA_PERMISSION);
+            mActivity.requestPermissions(PermissionUtils.VIDEO_PERMISSIONS, Contract.REQUEST_CAMERA_PERMISSION);
         }
     }
 
     //-----------------------------Permission's logic end---------------------
 
-    public interface IVideoRecordingListener{
+    /**
+     * Interface to notify controller about record video events
+     */
+    public interface IVideoRecordingListener {
         void closeCameraView();
     }
 
-    public static class Contract{
-        public static final int VIDEO_WIDTH = 1920;
-        public static final int VIDEO_HEIGHT = 1080;
+    /**
+     * Contract class for constants fields
+     */
+    static final class Contract {
+        static final int VIDEO_WIDTH = 1920;
+        static final int VIDEO_HEIGHT = 1080;
 
-        public static final String CAMERA_FRONT = "1";
-        public static final String CAMERA_BACK = "0";
-        public static final int DEFAULT_VIDEO_DURATION_LIMIT = 30;
-        public static final int DEFAULT_VIDEO_FRAME_RATE = 30;
-        public static final int VIDEO_BIT_RATE = 2000000;
-        public static final int REQUEST_CAMERA_PERMISSION = 1001;
-        public static final int SHARE_RESULT_CODE = 101;
-
+        static final String CAMERA_BACK = "0";
+        static final int VIDEO_BIT_RATE = 2000000;
+        static final int REQUEST_CAMERA_PERMISSION = 1001;
+        static final int SHARE_RESULT_CODE = 101;
+        static final int CAMERA_ORIENTATION = 90;
+        static final int TIMER_DELAY = 0;
+        static final int TIMER_PERIOD = 1000;
+        static final String VIDEO_MIME_TYPE = "video/mp4";
+        static final String VIDEO_HANDLER_NAME = "Camera Background";
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraTest</string>
+    <string name="app_name">VideoRecorder</string>
     <string name="start">Start</string>
 
     <string name="title_activity_fullscreen_camera">FullscreenCameraActivity</string>
@@ -12,7 +12,12 @@
     <string name="settings">SETTINGS</string>
     <string name="camera_storage_grant">Open Permissions and grant permissions</string>
     <string name="timer_initial_time">0:30</string>
-    <string name="str_share_this_video">Choose app to share video</string>
     <string name="end_video_button">END</string>
     <string name="start_inside_view">Start inside view</string>
+    <string name="share_video_title">Share video…</string>
+    <string name="timer_scheme">%d:%02d</string>
+    <string name="app_settings_package">package:%s</string>
+    <string name="failed">Failed</string>
+    <string name="camera_init_error">Camera is not initialized.</string>
+    <string name="authority_suffix">%s.provider</string>
 </resources>

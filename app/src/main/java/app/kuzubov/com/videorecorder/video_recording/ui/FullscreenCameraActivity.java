@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,24 +6,22 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
+import android.view.ViewGroup;
 
-import app.kuzubov.com.cameratest.R;
+import app.kuzubov.com.videorecorder.R;
+import app.kuzubov.com.videorecorder.video_recording.RecordVideoManager;
+import app.kuzubov.com.videorecorder.video_recording.helpers.FileHelper;
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * An example full-screen activity that shows camera preview
  */
 public class FullscreenCameraActivity extends AppCompatActivity implements RecordVideoManager.IVideoRecordingListener {
-
-    private static final String TAG = FullscreenCameraActivity.class.getSimpleName();
 
     public static void start(Context context) {
         context.startActivity(new Intent(context, FullscreenCameraActivity.class));
     }
 
     private RecordVideoManager mVideoManager;
-    private View mRoot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +29,9 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
 
         setContentView(R.layout.activity_fullscreen_camera);
 
-        mRoot = findViewById(R.id.root);
+        ViewGroup mRoot = findViewById(R.id.root);
 
-        mVideoManager = new RecordVideoManager(this, 10, 30, this);
+        mVideoManager = new RecordVideoManager(this, 10, 30, this, new FileHelper(FullscreenCameraActivity.this));
         mVideoManager.start(mRoot);
     }
 
@@ -52,7 +50,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        mVideoManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mVideoManager.onRequestPermissionsResult(requestCode, grantResults);
     }
 
     @Override
@@ -70,7 +68,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        mVideoManager.onActivityResult(requestCode, resultCode, data);
+        mVideoManager.onActivityResult(requestCode);
     }
 
     @Override
