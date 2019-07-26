@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest;
+package app.kuzubov.com.videorecorder;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import app.kuzubov.com.cameratest.video_recording.RecordVideoManager;
+import app.kuzubov.com.videorecorder.video_recording.RecordVideoManager;
 
 public class MainActivity extends AppCompatActivity{
 

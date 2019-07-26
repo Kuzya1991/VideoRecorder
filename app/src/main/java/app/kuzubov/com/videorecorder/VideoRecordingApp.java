@@ -1,11 +1,11 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 
 @SuppressLint("Registered")
-public class CameraTextApplication extends Application {
+public class VideoRecordingApp extends Application {
 
     @SuppressLint("StaticFieldLeak") //This variable will be used throughout all app lifecycle
     private static Context mContext;

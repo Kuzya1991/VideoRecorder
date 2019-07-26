@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,13 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
+import android.view.ViewGroup;
 
-import app.kuzubov.com.cameratest.R;
+import app.kuzubov.com.videorecorder.R;
+import app.kuzubov.com.videorecorder.video_recording.RecordVideoManager;
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * An example full-screen activity that shows camera preview
  */
 public class FullscreenCameraActivity extends AppCompatActivity implements RecordVideoManager.IVideoRecordingListener {
 
@@ -23,7 +23,6 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
     }
 
     private RecordVideoManager mVideoManager;
-    private View mRoot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +30,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
 
         setContentView(R.layout.activity_fullscreen_camera);
 
-        mRoot = findViewById(R.id.root);
+        ViewGroup mRoot = findViewById(R.id.root);
 
         mVideoManager = new RecordVideoManager(this, 10, 30, this);
         mVideoManager.start(mRoot);

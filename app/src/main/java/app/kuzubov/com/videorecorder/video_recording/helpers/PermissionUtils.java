@@ -1,6 +1,10 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.helpers;
 
 import android.Manifest;
+
+/**
+ * Helper class to work with permissions
+ */
 
 public class PermissionUtils {
 
@@ -12,9 +16,5 @@ public class PermissionUtils {
     public static final String[] VIDEO_PERMISSIONS = new String[]{
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO
-    };
-
-    public static final String[] SPEECH_RECOGNITION_PERMISSIONS = new String[]{
-            Manifest.permission.RECORD_AUDIO,
     };
 }

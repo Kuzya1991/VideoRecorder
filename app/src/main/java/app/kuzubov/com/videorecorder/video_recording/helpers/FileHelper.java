@@ -1,8 +1,15 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.helpers;
 
 import java.io.File;
 import java.io.IOException;
 
+import app.kuzubov.com.videorecorder.VideoRecordingApp;
+
+/**
+ * Helper class to simplify working with cash files
+ */
+
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileHelper {
 
     public static final String TEMP_DIR = "CacheDirectory";
@@ -21,7 +28,7 @@ public class FileHelper {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public File prepareTempFile(){
-        File myDir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_DIR);
+        File myDir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_DIR);
         if(!myDir.exists()){
             myDir.mkdir();
         }
@@ -35,7 +42,7 @@ public class FileHelper {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void clearCache(){
-        File dir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_DIR);
+        File dir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_DIR);
 
         String[] children = dir.list();
         if(children == null) return;
@@ -45,8 +52,9 @@ public class FileHelper {
         dir.delete();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void clearVideoCache(){
-        File dir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_VIDEO);
+        File dir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_VIDEO);
 
         String[] children = dir.list();
         if(children == null) return;
@@ -56,8 +64,9 @@ public class FileHelper {
         dir.delete();
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public File getVideoFile() {
-        File myDir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_DIR);
+        File myDir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_DIR);
         if(!myDir.exists()){
             myDir.mkdir();
         }
@@ -69,8 +78,9 @@ public class FileHelper {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public File prepareVideoFile(String name) {
-        File myDir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_VIDEO);
+        File myDir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_VIDEO);
         if(!myDir.exists()){
             myDir.mkdir();
         }
@@ -82,16 +92,18 @@ public class FileHelper {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public File getVideoDir(){
-        File myDir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_VIDEO);
+        File myDir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_VIDEO);
         if(!myDir.exists()){
             myDir.mkdir();
         }
         return myDir;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public File findFileByName(String name) {
-        File myDir = new File(CameraTextApplication.getAppContext().getCacheDir(), TEMP_VIDEO);
+        File myDir = new File(VideoRecordingApp.getAppContext().getCacheDir(), TEMP_VIDEO);
         if(!myDir.exists()){
             myDir.mkdir();
         }

@@ -1,4 +1,4 @@
-package app.kuzubov.com.cameratest.video_recording;
+package app.kuzubov.com.videorecorder.video_recording.ui;
 
 import android.content.Context;
 import android.util.AttributeSet;
