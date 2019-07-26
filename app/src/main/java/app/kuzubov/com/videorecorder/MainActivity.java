@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import app.kuzubov.com.videorecorder.video_recording.RecordVideoManager;
+import app.kuzubov.com.videorecorder.video_recording.helpers.FileHelper;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -24,6 +25,10 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 RecordVideoManager.start(MainActivity.this);
+                if(mContainer.getVisibility() == View.VISIBLE){
+                    mContainer.setVisibility(View.GONE);
+                    mVideoManager.onDestroy();
+                }
             }
         });
 
@@ -37,7 +42,7 @@ public class MainActivity extends AppCompatActivity{
                         mContainer.setVisibility(View.GONE);
                         mVideoManager.onDestroy();
                     }
-                });
+                }, new FileHelper(MainActivity.this));
                 mVideoManager.start(mContainer);
                 mVideoManager.onResume();
             }
@@ -63,7 +68,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (mVideoManager != null)
-            mVideoManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            mVideoManager.onRequestPermissionsResult(requestCode, grantResults);
         else
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -86,6 +91,6 @@ public class MainActivity extends AppCompatActivity{
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(mVideoManager != null)
-            mVideoManager.onActivityResult(requestCode, resultCode, data);
+            mVideoManager.onActivityResult(requestCode);
     }
 }

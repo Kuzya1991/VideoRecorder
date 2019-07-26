@@ -19,5 +19,5 @@
     <string name="app_settings_package">package:%s</string>
     <string name="failed">Failed</string>
     <string name="camera_init_error">Camera is not initialized.</string>
-    <string name="authority_sufics">%s.provider</string>
+    <string name="authority_suffix">%s.provider</string>
 </resources>

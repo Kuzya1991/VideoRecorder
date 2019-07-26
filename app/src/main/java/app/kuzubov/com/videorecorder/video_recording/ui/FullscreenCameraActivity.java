@@ -10,13 +10,12 @@ import android.view.ViewGroup;
 
 import app.kuzubov.com.videorecorder.R;
 import app.kuzubov.com.videorecorder.video_recording.RecordVideoManager;
+import app.kuzubov.com.videorecorder.video_recording.helpers.FileHelper;
 
 /**
  * An example full-screen activity that shows camera preview
  */
 public class FullscreenCameraActivity extends AppCompatActivity implements RecordVideoManager.IVideoRecordingListener {
-
-    private static final String TAG = FullscreenCameraActivity.class.getSimpleName();
 
     public static void start(Context context) {
         context.startActivity(new Intent(context, FullscreenCameraActivity.class));
@@ -32,7 +31,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
 
         ViewGroup mRoot = findViewById(R.id.root);
 
-        mVideoManager = new RecordVideoManager(this, 10, 30, this);
+        mVideoManager = new RecordVideoManager(this, 10, 30, this, new FileHelper(FullscreenCameraActivity.this));
         mVideoManager.start(mRoot);
     }
 
@@ -51,7 +50,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        mVideoManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        mVideoManager.onRequestPermissionsResult(requestCode, grantResults);
     }
 
     @Override
@@ -69,7 +68,7 @@ public class FullscreenCameraActivity extends AppCompatActivity implements Recor
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        mVideoManager.onActivityResult(requestCode, resultCode, data);
+        mVideoManager.onActivityResult(requestCode);
     }
 
     @Override

@@ -13,7 +13,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:name="app.kuzubov.com.videorecorder.VideoRecordingApp"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
             android:name="app.kuzubov.com.videorecorder.video_recording.ui.FullscreenCameraActivity"
